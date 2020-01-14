@@ -226,7 +226,7 @@ recipe5 <- function(x) {
     x
   }
 }
-meal <- recipe4(4); meal
+meal <- recipe4(4); meal #semi-colon compresses code to one line instead of 2, like presssing enter
 meal2 <- recipe4(2); meal2
 meal3 <- recipe5(3); meal3
 
