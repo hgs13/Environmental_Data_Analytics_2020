@@ -32,12 +32,13 @@ The completed exercise is due on Tuesday, January 21 at 1:00 pm.
 4. Insert comments in your code to describe what you are doing.
 
 ```{r}
-#1. 
-
-#2. 
-
-#3. 
-
+#1.counting by 4 to get to one hundred
+question1 <- seq(1, 100, 4) 
+#2. finding the mean and median of the "question 1" sequence
+mean(question1)
+median(question1) 
+#3. determining if the mean is greater than the median (it is not)
+mean(question1) > median(question1)
 ```
 
 ## Basics Day 2
@@ -51,21 +52,40 @@ The completed exercise is due on Tuesday, January 21 at 1:00 pm.
 8. Label the columns of your data frame with informative titles.
 
 ```{r}
-
+a <- c("Kitiara" , "Riverwind" , "Goldmoon" , "Tika") #character vector
+b <- c(95, 83, 68, 45) #numerical vector
+c <- c(TRUE, TRUE, TRUE, FALSE) #logical vector
+testscores <- data.frame(a, b, c)
+names(testscores) <- c("Student", "Score", "Passed")
 ```
 
 9. QUESTION: How is this data frame different from a matrix?
 
-> Answer: 
+> Answer: Matrices contain the same type of element, while data frames can include different vector types (characer, numberical, logical).
 
 10. Create a function with an if/else statement. Your function should determine whether a test score is a passing grade of 50 or above (TRUE or FALSE). You will need to choose either the `if` and `else` statements or the `ifelse` statement. Hint: Use `print`, not `return`. The name of your function should be informative.
 
 11. Apply your function to the vector with test scores that you created in number 5. 
 
 ```{r}
+grade_func1 <- function(x) {
+  if ( x >= 50 ) {
+  print ("Pass")
+    }
+ else {
+    print ("Fail")
+ }
+}
 
+grade_func2 <- function(x) {
+  ifelse(x >= 50, "Pass" , "Fail") 
+}
+
+grade_func1(b)
+
+grade_func2(b)
 ```
 
 12. QUESTION: Which option of `if` and `else` vs. `ifelse` worked? Why?
 
-> Answer: 
+> Answer: 'ifelse' worked because 'if' and 'else' can only read one object.
