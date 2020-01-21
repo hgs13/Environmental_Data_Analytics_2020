@@ -52,10 +52,10 @@ mean(question1) > median(question1)
 8. Label the columns of your data frame with informative titles.
 
 ```{r}
-a <- c("Kitiara" , "Riverwind" , "Goldmoon" , "Tika") #character vector
-b <- c(95, 83, 68, 45) #numerical vector
-c <- c(TRUE, TRUE, TRUE, FALSE) #logical vector
-testscores <- data.frame(a, b, c)
+student <- c("Kitiara" , "Riverwind" , "Goldmoon" , "Tika") #character vector
+score <- c(95, 83, 68, 45) #numerical vector
+pass <- c(TRUE, TRUE, TRUE, FALSE) #logical vector
+testscores <- data.frame(student, score, pass)
 names(testscores) <- c("Student", "Score", "Passed")
 ```
 
@@ -68,24 +68,24 @@ names(testscores) <- c("Student", "Score", "Passed")
 11. Apply your function to the vector with test scores that you created in number 5. 
 
 ```{r}
-grade_func1 <- function(x) {
+grade_func1 <- function(x) { 
   if ( x >= 50 ) {
   print ("Pass")
     }
  else {
     print ("Fail")
  }
-}
+} #using the 'if' and 'else' function to attempt to see the passing and failing scores; does not work
 
 grade_func2 <- function(x) {
   ifelse(x >= 50, "Pass" , "Fail") 
-}
+} #using the 'ifelse' function to determine the passing and failing scores; does work
 
-grade_func1(b)
+grade_func1(score)
 
-grade_func2(b)
+grade_func2(score)
 ```
 
 12. QUESTION: Which option of `if` and `else` vs. `ifelse` worked? Why?
 
-> Answer: 'ifelse' worked because 'if' and 'else' can only read one object.
+> Answer: 'ifelse' worked because 'if' and 'else' can only read one object, which it cannot do because the scores are more than one object.
