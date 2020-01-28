@@ -66,7 +66,7 @@ list1 <- list(name = "Maria", mynumbers = vector1, mymatrix = matrix1, age = 5.3
 list1[[2]]
 
 # Data Frames ----
-d <- c(1, 2, 3, 4) # What type of vector? numberic
+d <- c(1, 2, 3, 4) # What type of vector? numeric
 e <- c("red", "white", "red", NA) # What type of vector? character; insert "NA" so number of item under each letter matches up, don't need quotes around it
 f <- c(TRUE, TRUE, TRUE, FALSE) # What type of vector? logical
 dataframe1 <- data.frame(d,e,f) #data.frame creates a data frame; in parenthesis just shows what you what to include
