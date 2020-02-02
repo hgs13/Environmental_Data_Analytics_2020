@@ -198,7 +198,7 @@ NTL.phys.data.processed <-
   filter(lakename == "Paul Lake" | lakename == "Peter Lake") %>%
   select(lakename, sampledate:temperature_C) %>%
   mutate(temperature_F = (temperature_C*9/5) + 32)
-  
+ #pipe means take this data set &>% = THEN; saves time in the end 
 ```
 
 Notice that we did not place the dataset name inside the wrangling function but rather at the beginning.
@@ -207,6 +207,7 @@ Notice that we did not place the dataset name inside the wrangling function but 
 
 ```{r}
 write.csv(NTL.phys.data.PeterPaul1, row.names = FALSE, file = "./Data/Processed/NTL-LTER_Lake_ChemistryPhysics_PeterPaul_Processed.csv")
+#row.names = FALSE keeps the first column out of the dataset because it's just row numbers
 ```
 
 ## Closing Discussion
