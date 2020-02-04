@@ -1,6 +1,6 @@
 ---
 title: "Assignment 4: Data Wrangling"
-author: "Student Name"
+author: Hannah Smith
 output: pdf_document
 geometry: margin=2.54cm
 ---
@@ -25,8 +25,28 @@ The completed exercise is due on Tuesday, February 4 at 1:00 pm.
 
 ```{r, message = FALSE}
 #1
+getwd()
+setwd("~/Documents/ENV872 Data Analytics/Environmental_Data_Analytics_2020")
+library(tidyverse)
+library(lubridate)
+Ozone2018 <- read.csv("./Data/Raw/EPAair_O3_NC2018_raw.csv")
+Ozone2019 <- read.csv("./Data/Raw/EPAair_O3_NC2019_raw.csv")
+PM2018 <- read.csv("./Data/Raw/EPAair_PM25_NC2018_raw.csv")
+PM2019 <- read.csv("./Data/Raw/EPAair_PM25_NC2019_raw.csv")
 
 #2
+dim(Ozone2018)
+dim(Ozone2019)
+dim(PM2018)
+dim(PM2019)
+colnames(Ozone2018)
+colnames(Ozone2019)
+colnames(PM2018)
+colnames(PM2019)
+str(Ozone2018)
+str(Ozone2019)
+str(PM2018)
+str(PM2019)
 ```
 
 ## Wrangle individual datasets to create processed files.
@@ -37,12 +57,39 @@ The completed exercise is due on Tuesday, February 4 at 1:00 pm.
 
 ```{r}
 #3
+today <- Sys.Date()
+Ozone2018$Date <- as.Date(Ozone2018$Date, format = "%m/%d/%Y")
+Ozone2019$Date <- as.Date(Ozone2019$Date, format = "%m/%d/%Y")
+PM2018$Date <- as.Date(PM2018$Date, format = "%m/%d/%Y")
+PM2019$Date <- as.Date(PM2019$Date, format = "%m/%d/%Y")
 
 #4
+Ozone2018 <-
+  Ozone2018 %>%
+  select(Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
+Ozone2019 <-
+  Ozone2019 %>%
+  select(Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
+PM2018 <-
+  PM2018 %>%
+  select(Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
+PM2019 <-
+  PM2019 %>%
+  select(Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
 
 #5
+PM2018$AQS_PARAMETER_DESC <- as.factor("PM2.5")
+PM2019$AQS_PARAMETER_DESC <- as.factor("PM2.5")
 
 #6
+write.csv(Ozone2018, row.names = FALSE, 
+          file = "../Data/Processed/EPAair_O3_NC2018_processed.csv")
+write.csv(Ozone2019, row.names = FALSE, 
+          file = "../Data/Processed/EPAair_O3_NC2019_processed.csv")
+write.csv(PM2018, row.names = FALSE, 
+          file = "../Data/Processed/EPAair_PM25_NC2018_processed.csv")
+write.csv(PM2019, row.names = FALSE, 
+          file = "../Data/Processed/EPAair_PM25_NC2019_processed.csv")
 
 ```
 
@@ -62,14 +109,40 @@ The completed exercise is due on Tuesday, February 4 at 1:00 pm.
 
 ```{r}
 #7
+EPAair <- rbind(Ozone2018,
+                Ozone2019,
+                PM2018,
+                PM2019)
+View(EPAair)
 
 #8
+EPAairCombined <- 
+  EPAair %>%
+  filter(Site.Name == "Linville Falls" | Site.Name == "Durham Armory" | 
+           Site.Name == "Leggett" | Site.Name == "Hattie Avenue" | 
+           Site.Name == "Clemmons Middle" | Site.Name == "Mendenhall School" | 
+           Site.Name == "Frying Pan Mountain" | Site.Name == "West Johnston Co." | 
+           Site.Name == "Garinger High School" | Site.Name == "Castle Hayne" |
+           Site.Name == "Pitt Agri. Center" | Site.Name == "Bryson City" | 
+           Site.Name == "Millbrook School") %>%
+  group_by(Date, Site.Name, AQS_PARAMETER_DESC, COUNTY) %>%
+  summarise(MeanAQI = mean(DAILY_AQI_VALUE), 
+            MeanLatitude = mean(SITE_LATITUDE),
+            MeanLongitude = mean(SITE_LONGITUDE)) %>%
+  mutate(Month = month(Date),
+           Year = year(Date))
+dim(EPAairCombined)
 
 #9
+EPAairSpread <- spread(EPAairCombined,
+                      "AQS_PARAMETER_DESC", "MeanAQI")
 
 #10
+dim(EPAairSpread)
 
 #11
+write.csv(EPAairSpread, row.names = FALSE,
+          file = "../Data/Processed/EPAair_O3_PM25_NC1718_Processed.csv")
 
 ```
 
@@ -80,14 +153,23 @@ The completed exercise is due on Tuesday, February 4 at 1:00 pm.
 13. Call up the dimensions of the summary dataset.
 
 ```{r}
-#12a
+#12a 
+EPAairSummaryFrame <-
+  EPAairSpread %>%
+  group_by(Site.Name, Month, Year) %>%
+  summarise(MeanOzone = mean(Ozone), 
+            MeanPM2.5 = mean(PM2.5))
+  
 
 #12b
+EPAairSummaryFrameClean <-
+  EPAairSummaryFrame %>%
+  drop_na(Month, Year)
 
 #13
-
+dim(EPAairSummaryFrameClean)
 ```
 
 14. Why did we use the function `drop_na` rather than `na.omit`?
 
-> Answer: 
+> Answer: "Na.omit" removes any column that has "NA" rather than removing "NA" from the specific columns we choose (Month and Year).
