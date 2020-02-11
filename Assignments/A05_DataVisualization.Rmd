@@ -1,6 +1,6 @@
 ---
 title: "Assignment 5: Data Visualization"
-author: "Student Name"
+author: Hannah Smith
 output: pdf_document
 geometry: margin=2.54cm
 editor_options: 
@@ -29,18 +29,40 @@ The completed exercise is due on Tuesday, February 11 at 1:00 pm.
 
 ```{r}
 #1
-
+getwd()
+library(tidyverse)
+#install.packages("cowplot")
+library(cowplot)
+PeterPaul.nutrients <- read.csv("./Data/Processed/NTL-LTER_Lake_Nutrients_PeterPaul_Processed.csv")
+PeterPaul.nutrients.gathered <-   
+  read.csv("./Data/Processed/NTL-LTER_Lake_Nutrients_PeterPaulGathered_Processed.csv")
+PeterPaul.chem.phys <- read.csv("./Data/Processed/NTL-LTER_Lake_ChemistryPhysics_PeterPaul_Processed
+                                .csv")
+NIWOLitter <- read.csv("./Data/Processed/NEON_NIWO_Litter_mass_trap_Processed.csv")
 
 #2
+class(NIWOLitter$collectDate)
+NIWOLitter$collectDate <- as.Date(NIWOLitter$collectDate, format = "%Y-%m-%d")
 
+class(PeterPaul.chem.phys$sampledate)
+PeterPaul.chem.phys$sampledate <- as.Date(PeterPaul.chem.phys$sampledate, format = "%Y-%m-%d")
+
+class(PeterPaul.nutrients$sampledate)
+PeterPaul.nutrients$sampledate <- as.Date(PeterPaul.nutrients$sampledate, format = "%Y-%m-%d")
+
+class(PeterPaul.nutrients.gathered$sampledate)
+PeterPaul.nutrients.gathered$sampledate <- as.Date(PeterPaul.nutrients.gathered$sampledate, 
+                                                   format = "%Y-%m-%d")
 
 ```
 ## Define your theme
 3. Build a theme and set it as your default theme.
 
 ```{r}
-
-
+#3
+mytheme <- theme_classic(base_size = 16) +
+  theme(axis.tect = element_text(color = "black"),
+        legend.position =  "right")
 ```
 
 ## Create graphs
@@ -49,8 +71,15 @@ For numbers 4-7, create ggplot graphs and adjust aesthetics to follow best pract
 4. [NTL-LTER] Plot total phosphorus by phosphate, with separate aesthetics for Peter and Paul lakes. Add a line of best fit and color it black. Adjust your axes to hide extreme values.
 
 ```{r}
+#4
+PvsPO4plot <- 
+  ggplot(PeterPaul.nutrients, aes(x = tp_ug, y = po4, color = lakename)) +
+  geom_point() +
+  xlim(0, 150) +
+  ylim(0, 45) +
+  geom_smooth(method = lm, color = "black")
 
-
+print(PvsPO4plot)
 
 ```
 
@@ -58,8 +87,18 @@ For numbers 4-7, create ggplot graphs and adjust aesthetics to follow best pract
 5. [NTL-LTER] Make three separate boxplots of (a) temperature, (b) TP, and (c) TN, with month as the x axis and lake as a color aesthetic. Then, create a cowplot that combines the three graphs. Make sure that only one legend is present and that graph axes are aligned.
 
 ```{r}
+#5
+TempPlot <- ggplot(PeterPaul.chem.phys) +
+  geom_boxplot(aes(x = month, y = temperature_C, color = lakename))
+print(TempPlot)
 
+TPplot <- ggplot(PeterPaul.nutrients) +
+  geom_boxplot(aes(x = month, y = tp_ug, color = lakename))
+print(TPplot)
 
+TNplot <- ggplot(PeterPaul.nutrients) +
+  geom_boxplot(aes(x = month, y = tn_ug, color = lakename))
+print(TNplot)
 ```
 
 Question: What do you observe about the variables of interest over seasons and between lakes? 
@@ -71,11 +110,25 @@ Question: What do you observe about the variables of interest over seasons and b
 7. [Niwot Ridge] Now, plot the same plot but with NLCD classes separated into three facets rather than separated by color. 
 
 ```{r}
+#6
+NeedlesPlot1 <-
+  ggplot(subset(NIWOLitter, functionalGroup = Needles),
+         aes(x = collectDate, y = dryMass, color = nlcdClass)) +
+  geom_point()
+print(NeedlesPlot1)
 
+#7
+NeedlesPlot2 <- 
+  ggplot(subset(NIWOLitter, functionalGroup = Needles),
+         aes(x = collectDate, y = dryMass)) +
+  geom_point()+
+  facet_wrap(vars(nlcdClass))
+print(NeedlesPlot2)
 
+           
 
 ```
 
 Question: Which of these plots (6 vs. 7) do you think is more effective, and why? 
 
-> Answer: 
+> Answer: Plot 7 (the facet-separated one) is more effective than plot 6 because the facets allow the collect date for each type of NLCD class to be seen more clearly than when they are on one plot like they are in 6. Although each NLCD class is color-coded in plot 6, it is still difficult to distinguish between collect dates for each NLCD class.

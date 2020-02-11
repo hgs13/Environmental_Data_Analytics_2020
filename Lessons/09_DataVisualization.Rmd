@@ -95,16 +95,17 @@ While the theme allows us to set multiple aspects of plots, ggplot allows us to 
 
 ```{r, fig.height = 3, fig.width = 4, warning = FALSE}
 O3plot7 <- ggplot(EPAair, aes(x = Date, y = Ozone)) +
-  geom_hline(yintercept = 50, lty = 2) +
+  geom_hline(yintercept = 50, lty = 2) + #lty = line type, 2 = dashed line
   geom_hline(yintercept = 100, lty = 2) +
-  geom_point(alpha = 0.5, size = 1.5) +
+  geom_point(alpha = 0.5, size = 1.5) + #added aestethic after hline because ggplot adds by layers, so points will now go BEHIND line, alpha = .5 is 50% transparency, size is size of point
   geom_text(x = as.Date("2020-01-01"), y = 45, label = "good", hjust = 1, fontface = "bold") +
   geom_text(x = as.Date("2020-01-01"), y = 95, label = "moderate", hjust = 1, fontface = "bold") +
-  geom_text(x = as.Date("2020-01-01"), y = 120, label = "unhealthy (sensitive groups)", hjust = 1, fontface = "bold") +
-  scale_x_date(limits = as.Date(c("2018-01-01", "2019-12-31")), 
+  geom_text(x = as.Date("2020-01-01"), y = 120, label = "unhealthy (sensitive groups)", hjust = 1,
+            fontface = "bold") + #x is where text is, y is where label is, hjust 1 = justified right, hjust = -1 = justified left
+  scale_x_date(limits = as.Date(c("2018-01-01", "2019-12-31")), #x value range/bounds
     date_breaks = "2 months", date_labels = "%b %y") +
-  ylab(expression("O"[3]* " AQI Value")) +
-  theme(axis.text.x = element_text(angle = 45,  hjust = 1))
+  ylab(expression("O"[3]* " AQI Value")) + #expression = anything in parenthesis is written as is,[] means super or subscript
+  theme(axis.text.x = element_text(angle = 45,  hjust = 1)) #if labels overlap, turn them 45 degrees
 print(O3plot7)  
 
 ```
@@ -175,14 +176,18 @@ print(NvsP)
 NvsP2 <-
   ggplot(PeterPaul.chem.nutrients, aes(x = tp_ug, y = tn_ug, color = depth, shape = lakename)) +
   geom_point(alpha = 0.7, size = 2.5) +
-  #labs() + # change your legend labels here
+  labs(x = expression(paste("Total Phosphorous (", mu, "g/L")")), 
+       y = expression(paste("Total Nitrogen (", mu, "g/L")"), 
+       color = "Depth (m)", shape = "Lake") +  # change your legend labels here
   scale_shape_manual(values = c(15, 17)) +
   #scale_color_distiller(palette = "Blues", direction = 1) + # use scale_color_brewer for discrete variables
-  scale_color_viridis(option = "magma", direction = -1) +
+  scale_color_viridis(option = "magma", direction = -1, end = 0.8) + #end chops of bottom 20% or whatever of color scales for less pale yellows or bottom color
   theme(legend.position = "right", 
         legend.text = element_text(size = 12), legend.title = element_text(size = 12))
 print(NvsP2)
+```
 
+```{r, warning = FALSE}
 # change your y axis label to list concentration in micrograms per liter
 # remove your x axis label
 # change labels for nutrients in the legend
@@ -191,11 +196,14 @@ Nutrientplot <-
   ggplot(PeterPaul.chem.nutrients.gathered, aes(x = lakename, y = concentration, color = nutrient)) +
   geom_boxplot() +
 # place your additional edits here
+  labs(x = NULL, y = "Concentration (ug/L)",
+       color = "Nutrient") +
   scale_y_continuous(expand = c(0, 0)) +
   #scale_color_brewer(palette = "YlGnBu") +
-  #scale_color_manual(values = c("#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84")) +
+  scale_color_manual(values = c("#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84")) +
   #scale_color_viridis(discrete = TRUE, end = 0.8) +
   theme(legend.position = "right")
+
 print(Nutrientplot)
 ```
 
@@ -206,7 +214,7 @@ In situations where facets don't fill our needs to place multiple plots on a pag
 A useful guide for aligning plots by axis can be found here: https://wilkelab.org/cowplot/articles/aligning_plots.html
 
 ```{r, fig.height = 7, fig.width = 6}
-#install.packages("cowplot")
+# install.packages("cowplot")
 library(cowplot)
 plot_grid(NvsP2, Nutrientplot, nrow = 2, align = 'h', rel_heights = c(1.25, 1))
 
