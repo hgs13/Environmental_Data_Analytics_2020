@@ -1,9 +1,11 @@
 ---
-title: "Assignment 6: GLMs week 1 (t-test and ANOVA)"
-author: Hannah Smith
-output: pdf_document
+title: 'Assignment 6: GLMs week 1 (t-test and ANOVA)'
+author: "Hannah Smith"
 geometry: margin=2.54cm
-editor_options: 
+output:
+  word_document: default
+  pdf_document: default
+editor_options:
   chunk_output_type: console
 ---
 
@@ -109,7 +111,7 @@ nutrient.groups.TP
 
 8. Combine your plots with cowplot, with a common legend at the top and the two graphs stacked vertically. Your x axes should be formatted with the same breaks, such that you can remove the title and text of the top legend and retain just the bottom legend. 
 
-```{r, fig.height = 3, fig.width = 4}
+```{r}
 #7
 TNplot <- ggplot(nutrients.wrangled, aes(y = tn_ug, x = month, color = lakename)) +
   geom_boxplot() +
@@ -121,7 +123,7 @@ TNplot <- ggplot(nutrients.wrangled, aes(y = tn_ug, x = month, color = lakename)
                label = c("ab","b", "ab", "b", "a", "b","a","b","ab","ab"),
                show.legend=FALSE) +
   labs(x = NULL, y = expression(TN ~ (mu*g / L))) +
-  ylim(0, 2150)
+  coord_cartesian(ylim = c(0, 2300))
 
 print(TNplot)
 
@@ -135,7 +137,7 @@ TPplot <- ggplot(nutrients.wrangled, aes(y = tp_ug, x = month, color = lakename)
                label = c("bcd","cd","ab","d","a","d","abc","d","abcd","cd"),
                show.legend=FALSE) +
   labs(x = "Month", y = expression(TP ~ (mu*g / L))) +
-  ylim(0, 80)
+  coord_cartesian(ylim = c(0, 80))
 
 print(TPplot)
 
