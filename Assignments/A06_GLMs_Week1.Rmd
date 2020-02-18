@@ -29,10 +29,26 @@ The completed exercise is due on Tuesday, February 18 at 1:00 pm.
 
 ```{r, message = FALSE}
 #1
+getwd()
+library(tidyverse)
+library(cowplot)
+library(agricolae)
 
+nutrients <- read.csv("./Data/Processed/NTL-LTER_Lake_Nutrients_PeterPaul_Processed.csv")
+
+mytheme <- theme_classic(base_size = 14) +
+  theme(axis.text = element_text(color = "black"), 
+        legend.position = "bottom")
+theme_set(mytheme)
+
+library(nationalparkcolors)
+pal <- park_palette("CraterLake")
+pal
 
 #2
-
+nutrients$sampledate <- as.Date(nutrients$sampledate, format = "%Y-%m-%d")
+head(nutrients$sampledate)
+class(nutrients$sampledate)
 ```
 
 
@@ -41,7 +57,14 @@ The completed exercise is due on Tuesday, February 18 at 1:00 pm.
 3. Wrangle your dataset so that it contains only surface depths and only the years 1993-1996, inclusive. Set month as a factor.
 ```{r}
 
+nutrients.wrangled <- 
+  nutrients %>%
+  filter(depth == 0) %>%
+  filter(year4 == 1993 | year4 == 1994 | year4 == 1995 | year4 == 1996)
+  
+nutrients.wrangled$month <- as_factor(nutrients.wrangled$month)
 
+class(nutrients.wrangled$month)
 ```
 
 ## Analysis
@@ -50,7 +73,7 @@ Peter Lake was manipulated with additions of nitrogen and phosphorus over the ye
 
 4. Which application of the GLM will you use (t-test, one-way ANOVA, two-way ANOVA with main effects, or two-way ANOVA with interaction effects)? Justify your choice.
 
-> Answer: 
+> Answer: Two-way ANOVA with interaction effects should be used because we are investigating whether nutrients vary per lake AND whether nutrients vary per season per lake. In this way, the season could impact nutrients in one lake during a certain season but not the other; therefore, nutrients and season could interact.
 
 5. Run your test for TN. Include examination of groupings and consider interaction effects, if relevant.
 
@@ -58,23 +81,78 @@ Peter Lake was manipulated with additions of nitrogen and phosphorus over the ye
 
 ```{r}
 #5
-
+nutrients.wrangled.anova.2wayTN <- aov(data = nutrients.wrangled, 
+                                     tn_ug ~ lakename * month)
+summary(nutrients.wrangled.anova.2wayTN)
+TukeyHSD(nutrients.wrangled.anova.2wayTN)
+nutrients.interactionTN <- with(nutrients.wrangled, interaction(lakename, month))
+nutrients.wrangled.anova.2wayTN2 <- aov(data = nutrients.wrangled, 
+                                        tn_ug ~ nutrients.interactionTN)
+nutrient.groups.TN <- HSD.test(nutrients.wrangled.anova.2wayTN2, 
+                               "nutrients.interactionTN", group = TRUE)
+nutrient.groups.TN
 
 #6
-
-
+nutrients.wrangled.anova.2wayTP <- aov(data = nutrients.wrangled, 
+                                     tp_ug ~ lakename * month)
+summary(nutrients.wrangled.anova.2wayTP)
+TukeyHSD(nutrients.wrangled.anova.2wayTP)
+nutrients.interactionTP <- with(nutrients.wrangled, interaction(lakename, month))
+nutrients.wrangled.anova.2wayTP2 <- aov(data = nutrients.wrangled, 
+                                        tp_ug ~ nutrients.interactionTP)
+nutrient.groups.TP <- HSD.test(nutrients.wrangled.anova.2wayTP2, 
+                               "nutrients.interactionTP", group = TRUE)
+nutrient.groups.TP
 ```
 
 7. Create two plots, with TN (plot 1) or TP (plot 2) as the response variable and month and lake as the predictor variables. Hint: you may use some of the code you used for your visualization assignment. Assign groupings with letters, as determined from your tests. Adjust your axes, aesthetics, and color palettes in accordance with best data visualization practices.
 
 8. Combine your plots with cowplot, with a common legend at the top and the two graphs stacked vertically. Your x axes should be formatted with the same breaks, such that you can remove the title and text of the top legend and retain just the bottom legend. 
 
-```{r}
+```{r, fig.height = 3, fig.width = 4}
 #7
+TNplot <- ggplot(nutrients.wrangled, aes(y = tn_ug, x = month, color = lakename)) +
+  geom_boxplot() +
+  scale_color_manual(values=pal) +
+  theme(legend.title=element_blank()) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5)) + 
+  stat_summary(geom = "text", fun.y = max, vjust = -1, size = 3.5, 
+               position = position_dodge(0.7),
+               label = c("ab","b", "ab", "b", "a", "b","a","b","ab","ab"),
+               show.legend=FALSE) +
+  labs(x = NULL, y = expression(TN ~ (mu*g / L))) +
+  ylim(0, 2150)
 
+print(TNplot)
+
+TPplot <- ggplot(nutrients.wrangled, aes(y = tp_ug, x = month, color = lakename)) +
+  geom_boxplot() +
+  scale_color_manual(values=pal) +
+  theme(legend.title=element_blank()) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5)) + 
+  stat_summary(geom = "text", fun.y = max, vjust = -1, size = 3.5, 
+               position = position_dodge(0.7),
+               label = c("bcd","cd","ab","d","a","d","abc","d","abcd","cd"),
+               show.legend=FALSE) +
+  labs(x = "Month", y = expression(TP ~ (mu*g / L))) +
+  ylim(0, 80)
+
+print(TPplot)
 
 #8
+nolegend.plot <- plot_grid(
+          TNplot + theme(legend.position="none"), 
+          TPplot + theme(legend.position="none"), 
+          nrow = 2, align = 'v')
+print(nolegend.plot)
 
+legend <- get_legend(
+  TNplot +
+    guides(color = guide_legend(nrow = 1)) +
+    theme(legend.position = "top"))
+
+final.plot <- plot_grid(nolegend.plot, legend, ncol = 1, rel_heights = c(1, .1))
+print(final.plot)
 ```
 
 
