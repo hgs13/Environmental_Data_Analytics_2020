@@ -32,7 +32,8 @@ library(tidyverse)
 library(nlme)
 library(piecewiseSEM)
 
-
+chem.phys.raw <- read.csv("./Data/Raw/NTL-LTER_Lake_ChemsitryPhysics_Raw.csv")
+litter
 #2
 
 ```
