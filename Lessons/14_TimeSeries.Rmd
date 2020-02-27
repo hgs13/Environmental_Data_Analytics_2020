@@ -190,13 +190,13 @@ In general, detecting a monotonic trend requires a long sequence of data with fe
 
 Adjusting the data may be necessary to fulfill the assumptions of a trend test. These adjustments include **aggregation**, **subsampling**, and **interpolation**. What do each of these mean, and why might we want to use them?
 
-> aggregation: 
+> aggregation: if you have too much data, combine with summary statistics
 
-> subsampling: 
+> subsampling: if too much data, take a certain subset (like the first day of the month)
 
-> interpolation: 
+> interpolation: fill in gaps from existing data by extracting the trend from them
 
-Common interpolation methods: 
+Common interpolation methods: (see notebook on 2/27 to see the graph example), which on you use depends on previous knowledge of data
 
 * **Piecewise constant**: also known as a "nearest neighbor" approach. Any missing data are assumed to be equal to the measurement made nearest to that date (could be earlier or later).
 * **Linear**: could be thought of as a "connect the dots" approach. Any missing data are assumed to fall between the previous and next measurement, with a straight line drawn between the known points determining the values of the interpolated data on any given date.
@@ -212,7 +212,7 @@ NCOzone <-
 ggplot(NCAir, aes(x = Date, y = Ozone)) +
   geom_point() +
   facet_wrap(vars(Site.Name))
-print(NCOzone)
+print(NCOzone) #not great to interpolate across these because it seems the low point is during the time we are missing
 
 NCPM2.5 <-
 ggplot(NCAir, aes(x = Date, y = PM2.5)) +
@@ -220,10 +220,10 @@ ggplot(NCAir, aes(x = Date, y = PM2.5)) +
   facet_wrap(vars(Site.Name))
 print(NCPM2.5)
 
-summary(NCAir$Site.Name)
+summary(NCAir$Site.Name) #how many rows in each column, Garinger is a good place because it is only missing 8 data points
 
 NCAir.Garinger <- NCAir %>%
-  filter(Site.Name == "Garinger High School")
+  filter(Site.Name == "Garinger High School") 
 
 GaringerOzone <-
 ggplot(NCAir.Garinger, aes(x = Date, y = Ozone)) +
@@ -233,7 +233,7 @@ print(GaringerOzone)
 # na.approx function fills in NAs with a linear interpolation
 # Spline interpolation can also be specified as an alternative
 # Piecewise constant interpolation can be done with na.aggregate
-NCAir.Garinger$Ozone <- na.approx(NCAir.Garinger$Ozone)
+NCAir.Garinger$Ozone <- na.approx(NCAir.Garinger$Ozone) #new column for ozone is an na.approx 
 NCAir.Garinger$PM2.5 <- na.approx(NCAir.Garinger$PM2.5)
 
 GaringerOzone.interpolated <-
@@ -247,9 +247,9 @@ print(GaringerOzone.interpolated)
 Specific tests for monotonic trend analysis are listed below, with assumptions and tips: 
 
 * **linear regression**: no seasonality, fits the assumptions of a parametric test. Function: `lm`
-* **Mann-Kendall**: no seasonality, non-parametric, no temporal autocorrelation, missing data allowed. Function: `mk.test` (package: trend)
+* **Mann-Kendall**: no seasonality, non-parametric, no temporal autocorrelation (the further away you get in time, the less correlated the data are), missing data allowed. Function: `mk.test` (package: trend)
 * **modified Mann-Kendall**: no seasonality, non-parametric, accounts for temporal autocorrelation, missing data allowed. Function: `mmky` and `mmkh` (package: modifiedmk)
-* **Seasonal Mann-Kendall**: seasonality, non-parametric, no temporal autocorelation, identical distribution. Function: `smk.test` (package: trend)
+* **Seasonal Mann-Kendall**: seasonality, non-parametric, no temporal autocorelation, identical distribution (be equally spaced). Function: `smk.test` (package: trend)
 
 The packages trend, Kendall, and modifiedmk also include other modifications to monotonic trend tests. Look into the documentation for these packages if you are applying a special case.
 
@@ -261,28 +261,34 @@ Remember that we noticed in the decomposition that the Eno River discharge data 
 
 The Seasonal Mann-Kendall assumes no temporal autocorrelation, but we know that daily data is prone to temporal autocorrelation. In this case, we may want to collapse our data down into monthly data so that we can (1) reduce temporal autocorrelation and (2) break down the potential seasonal trend into more interpretable components. 
 
-We will calculate the mean monthly discharge for this dataset, rather than calculating the total monthly discharge or subsampling a given day in each month. Why did we make this decision?
+We will calculate the mean monthly discharge for this dataset, rather than calculating the total monthly discharge or subsampling a given day in each month. Why did we make this decision? 
+> The mean accounts for some variablilty in the data across the month and includes the outliers moreso than the median.
 
 ```{r}
 EnoDischarge.late.monthly <- EnoDischarge.late %>%
   mutate(Year = year(datetime), 
          Month = month(datetime)) %>%
   group_by(Year, Month) %>%
-  summarise(Discharge = mean(discharge.mean)) 
-  
+  summarise(Discharge = mean(discharge.mean)) #if use sum, realize the months have different days (sum does better with year)
+#new columns will be whatever is in "group_by" and "summarise"
+
+#we are "creating" a date so we can graph it, but we won't use it in the analysis #use this data fram with the new column($), paste what is in the year and month column, make a one in the new column, and separate with a dash, then turn it into a date 
+# could feasibly do a pipe function with mutate and the same function
 EnoDischarge.late.monthly$Date <- as.Date(paste(EnoDischarge.late.monthly$Year, 
                                                 EnoDischarge.late.monthly$Month, 
                                                 1, sep="-"), 
                                           format = "%Y-%m-%d")
 
 # Generate time series (smk.test needs ts, not data.frame)
+# frequency should come back around every 12 rows, include frequency and start and end dates will not be included in the time series, so included it manually?
 EnoDischarge.late.monthly.ts <- ts(EnoDischarge.late.monthly$Discharge, frequency = 12, 
                         start = c(1985, 10, 1), end = c(2019, 12, 1))
-# Run SMK test
+# Run SMK test (must be run on an ts)
 EnoDischarge.late.trend <- smk.test(EnoDischarge.late.monthly.ts)
 
 # Inspect results
 EnoDischarge.late.trend
+#the smk test will say if there's a monotonic trend and if it's positive or negative, z-score shows we have a slightly decreasing trend but it is not signficant (p-value is very high)
 summary(EnoDischarge.late.trend)
 
 EnoDischarge.monthly <-
@@ -290,12 +296,13 @@ ggplot(EnoDischarge.late.monthly, aes(x = Date, y = Discharge)) +
   geom_point() +
   geom_line()
 print(EnoDischarge.monthly)
+#there's a lot of variability with this data and no significant trends, there could be trends over "seasons" but not in the data overall
 ```
 
 What would we conclude based on these findings? 
 
->
- 
+> There is no signficant change in the mean flow yearly or monthly discharge of the Eno River from 1985 to present (Seasonal Mann-Kendall, z = -0.13967, p-value > 0.05). 
+
 If a significant trend was present, we could compute a **Sen's Slope** to quantify that trend (`sens.slope` function in the trend package).
 
 

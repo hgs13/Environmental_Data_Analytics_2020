@@ -68,11 +68,9 @@ chem.phys.clean <- chem.phys.raw %>%
 
 #4
 chem.phys.AIC <- lm(data = chem.phys.clean, temperature_C ~ year4 + daynum + depth)
-
 step(chem.phys.AIC)
 
 chem.phys.regression <- lm(data = chem.phys.clean, temperature_C ~ year4 + daynum + depth)
-
 summary(chem.phys.regression)
 ```
 
